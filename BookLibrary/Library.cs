@@ -21,7 +21,20 @@ namespace BookLibrary
             _publisherRepository = publisherRepository;
         }
 
-        public void AddBook(Book book) => _bookRepository.AddBook(book);
+        public void AddBook(Book book)
+        {
+            var existingPublisher = _publisherRepository.GetPublisherByName(book.Publisher.Name);
+            if (existingPublisher == null)
+            {
+                _publisherRepository.AddPublisher(book.Publisher);
+            }
+            else
+            {
+                book.Publisher = existingPublisher;
+            }
+
+            _bookRepository.AddBook(book);
+        }
 
         public Book GetBook(string isbn) => _bookRepository.GetBookByISBN(isbn);
 
@@ -36,6 +49,10 @@ namespace BookLibrary
         public void UpdateBook(Book book) => _bookRepository.UpdateBook(book);
 
         public void DeleteBook(string isbn) => _bookRepository.DeleteBook(isbn);
+
+        public Publisher GetPublisher(string name) => _publisherRepository.GetPublisherByName(name);
+
+        public IEnumerable<Publisher> GetAllPublishers() => _publisherRepository.GetAllPublishers();
 
         public void AddReviewToBook(string isbn, BookReview review)
         {
