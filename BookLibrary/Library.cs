@@ -5,16 +5,20 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Text.Json;
 using System.Threading.Tasks;
+using DependencyInjection;
 
 namespace BookLibrary
 {
     public class Library
     {
         private readonly IBookRepository _bookRepository;
+        private readonly IPublisherRepository _publisherRepository;
 
-        public Library(IBookRepository bookRepository)
+        [Inject]
+        public Library(IBookRepository bookRepository, IPublisherRepository publisherRepository)
         {
             _bookRepository = bookRepository;
+            _publisherRepository = publisherRepository;
         }
 
         public void AddBook(Book book) => _bookRepository.AddBook(book);

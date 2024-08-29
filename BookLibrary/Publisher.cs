@@ -8,13 +8,7 @@ namespace BookLibrary
 {
     public class Publisher
     {
-        public string Name { get; set; }
-        public string Country { get; set; }
-
-        public Publisher(string name, string country)
-        {
-            Name = name;
-            Country = country;
-        }
+        public required string Name { get; set; }
+        public required string Country { get; set; }
     }
 }

@@ -1,19 +1,35 @@
 ﻿using BookLibrary;
+using DependencyInjection;
 
-var repository = new BookRepository();
-var library = new Library(repository);
+var container = new DIContainer();
 
-// Add some books
-library.AddBook(new Book("1234567890", "Sample Book 1", "Author 1",
-    new Published(new DateOnly(2022, 1, 1)),
-    new Publisher("Publisher A", "Country A")));
+container.Register<IBookRepository, BookRepository>();
+container.Register<IPublisherRepository, PublisherRepository>();
+container.Register<Library, Library>();
 
-library.AddBook(new Book("0987654321", "Sample Book 2", "Author 2",
-    new Planned(new DateOnly(2023, 12, 31)),
-    new Publisher("Publisher B", "Country B")));
+var library = container.Resolve<Library>();
 
-// Add a review
-library.AddReviewToBook("1234567890", new BookReview
+var isbn1 = ISBNGenerator.GenerateISBN13();
+library.AddBook(new Book
+{
+    ISBN = isbn1,
+    Title = "Sample Book 1",
+    Author = "Author 1",
+    Publication = new Published(new DateOnly(2022, 1, 1)),
+    Publisher = new Publisher { Name = "Publisher A", Country = "Country A" }
+});
+
+var isbn2 = ISBNGenerator.GenerateISBN13();
+library.AddBook(new Book
+{
+    ISBN = isbn2,
+    Title = "Sample Book 2",
+    Author = "Author 2",
+    Publication = new Published(new DateOnly(2023, 3, 3)),
+    Publisher = new Publisher { Name = "Publisher B", Country = "Country B" }
+});
+
+library.AddReviewToBook(isbn1, new BookReview
 {
     Id = 1,
     ReviewerName = "John Doe",
@@ -21,21 +37,35 @@ library.AddReviewToBook("1234567890", new BookReview
     Comment = "Great book!"
 });
 
-// Save to JSON
+library.AddReviewToBook(isbn2, new BookReview
+{
+    Id = 2,
+    ReviewerName = "Jane Smith",
+    Rating = 4,
+    Comment = "Interesting read!"
+});
+
 library.SaveLibraryToJson("library.json");
 
-// Load from JSON
-var newLibrary = new Library(new BookRepository());
+var newLibrary = container.Resolve<Library>();
 newLibrary.LoadLibraryFromJson("library.json");
 
-// Display books with pagination
 var page = 1;
 var pageSize = 10;
 foreach (var book in newLibrary.GetBooksPaginated(page, pageSize))
 {
     Console.WriteLine(book);
-    foreach (var review in book.Reviews)
+    if (book.Reviews.Any())
     {
-        Console.WriteLine($"  Review: {review.Rating}/5 - {review.Comment}");
+        Console.WriteLine("  Reviews:");
+        foreach (var review in book.Reviews)
+        {
+            Console.WriteLine($"    {review.ReviewerName}: {review.Rating}/5 - {review.Comment}");
+        }
     }
+    else
+    {
+        Console.WriteLine("  No reviews yet.");
+    }
+    Console.WriteLine();
 }
